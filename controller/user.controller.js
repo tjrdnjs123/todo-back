@@ -1,5 +1,5 @@
 const User = require("../model/User");
-const bcrypt = require("bcrypt");
+const bcryptjs = require("bcryptjs");
 
 const saltRounds = 10;
 
@@ -12,8 +12,8 @@ userController.createUser = async (req, res) => {
     if (user) {
       throw new Error("이미 가입이 된 유저입니다");
     }
-    const salt = bcrypt.genSaltSync(saltRounds);
-    const hash = bcrypt.hashSync(password, salt);
+    const salt = bcryptjs.genSaltSync(saltRounds);
+    const hash = bcryptjs.hashSync(password, salt);
     console.log("hash", hash);
     const newUser = new User({ name, email, password: hash });
     await newUser.save();
@@ -28,7 +28,7 @@ userController.loginWithEmail = async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email }, "-createdAt -updatedAt -__v");
     if (user) {
-      const isMatch = bcrypt.compareSync(password, user.password); // true
+      const isMatch = bcryptjs.compareSync(password, user.password); // true
       if (isMatch) {
         const token = user.generateToken(); // 수정된 부분
         return res.status(200).json({ status: "ok", user, token });
@@ -36,7 +36,20 @@ userController.loginWithEmail = async (req, res) => {
     }
     throw new Error("아이디 또는 비밀번호가 일치하지 않습니다");
   } catch (err) {
-    res.status(400).json({ status: "fail", error: err.message });
+    res.status(400).json({ status: "fail", message: err.message });
+  }
+};
+userController.getUser = async (req, res) => {
+  try {
+    const { userId } = req;
+    console.log("userId",userId)
+    const user =await User.findById(userId);
+    if(!user){
+      throw new Error('can not find user')
+    }
+    res.status(200).json({status:"success",user})
+  } catch (error) {
+    res.status(400).json({ status: "fail", message: error.message });
   }
 };
 

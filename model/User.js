@@ -29,6 +29,9 @@ userSchema.methods.generateToken = function () {
 userSchema.methods.toJSON = function () {
   const obj = this._doc;
   delete obj.password;
+  delete obj.createdAt;
+  delete obj.updatedAt;
+  delete obj.__v;
   return obj;
 };
 const User = mongoose.model("User", userSchema);
